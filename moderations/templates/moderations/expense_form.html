@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+
+
+{% block content %}
+
+    <a href="{% url "moderations:list" %}">Expenses</a>
+    &gt;
+    Add new expense...
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {% bootstrap_form form %}
+        {% buttons %}
+            <button type="submit" class="btn btn-primary">
+                Save {% bootstrap_icon "save" %}
+            </button>
+        {% endbuttons %}
+    </form>
+
+{% endblock %}

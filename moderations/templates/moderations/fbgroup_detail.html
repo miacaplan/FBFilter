@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+    <a href="{% url "moderations:list" %}">Back to all expenses</a>
+
+    <ul class="list-group">
+        <li class="list-group-item">
+            {{ object.date }}
+        </li>
+        <li class="list-group-item">
+            {{ object.amount }}
+        </li>
+        <li class="list-group-item">
+            {{ object.title }}
+        </li>
+        {% if object.description %}
+            <li class="list-group-item">
+                {{ object.description|linebreaks }}
+            </li>
+        {% endif %}
+        {% if object.photo %}
+            <li class="list-group-item">
+                <img src="{{ object.photo.url }}" class="img-responsive">
+
+            </li>
+        {% endif %}
+    </ul>
+
+
+{% endblock %}
