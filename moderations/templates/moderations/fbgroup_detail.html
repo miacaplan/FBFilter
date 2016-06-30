@@ -1,31 +1,32 @@
 {% extends "base.html" %}
+{% load bootstrap3 %}
 
 {% block content %}
 
-    <a href="{% url "moderations:list" %}">Back to all expenses</a>
+    <a href="{% url "moderations:groups" %}">Back to all groups</a>
 
     <ul class="list-group">
-        <li class="list-group-item">
-            {{ object.date }}
-        </li>
-        <li class="list-group-item">
-            {{ object.amount }}
-        </li>
-        <li class="list-group-item">
-            {{ object.title }}
-        </li>
-        {% if object.description %}
+        {% for p in object.postments.all %}
             <li class="list-group-item">
-                {{ object.description|linebreaks }}
+                <h4 class="list-group-item-heading">
+                    <span class="pull-right">
+                        <button class="btn btn-default btn-xs">
+                            <i class="glyphicon glyphicon-ok"></i></button>
+                        <button class="btn btn-default btn-xs">
+                            <i class="glyphicon glyphicon-envelope"></i></button>
+                        <button class="btn btn-default btn-xs">
+                            <i class="glyphicon glyphicon-trash"></i></button>
+                    </span>
+                    {{ item.product.title }}
+                </h4>
+                <div class="list-group-item-text">
+                    {{ p.message }}
+                </div>
             </li>
-        {% endif %}
-        {% if object.photo %}
-            <li class="list-group-item">
-                <img src="{{ object.photo.url }}" class="img-responsive">
-
-            </li>
-        {% endif %}
+        {% endfor %}
     </ul>
 
+
+{#    {% bootstrap_pagination page_obj %}#}
 
 {% endblock %}

@@ -79,22 +79,28 @@ class ListFBGroupView(LoginRequiredMixin, ListView):
     model = models.FBGroup
     paginate_by = 10
     page_title = "Home"
-    # login_url = '/login/?from={}'.format(reverse_lazy("moderations:groups"))
-    # redirect_field_name = 'from'
 
-    # def get_queryset(self):
-    #     return super().get_queryset().filter(group__user=self.request.user)
+    def get_queryset(self):
+        return super().get_queryset().filter(moderators__exact=self.request.user.moderator)
 
     def total(self):
         return 87 #self.get_queryset().aggregate(sum=Sum('amount'))['sum']
 
+
+class ListPostmentView(LoginRequiredMixin, ListView):
+    model = models.Postment
+    paginate_by = 10
+    page_title = "Posts & Comments to Moderate"
+
+    def get_queryset(self):
+        return super().get_queryset().filter(group__moderators__exact=self.request.user.moderator)
+
+
 class FBGroupDetailView(LoginRequiredMixin, DetailView):
     model = models.FBGroup
-    # login_url = '/login/?from=/' #todo
-    # redirect_field_name = 'from'
 
-    # def get_queryset(self):
-    #     return super().get_queryset().filter(account__user=self.request.user)
+    def get_queryset(self):
+        return super().get_queryset().filter(moderators__exact=self.request.user.moderator)
 
     def page_title(self):
         return self.object.name

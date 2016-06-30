@@ -1,5 +1,6 @@
 {% load i18n staticfiles bootstrap3 %}
 {% get_current_language_bidi as BIDI %}
+{% load bootstrap3 %}
 
 <!DOCTYPE html>
 <html>
@@ -48,11 +49,9 @@
 
 </div>
 
-<script src="{% static "jquery.js" %}"></script>
-<script src="{% static "bootstrap-rating-master/bootstrap-rating.js" %}"></script>
-
 {% block scripts %}
 {% endblock %}
 
 </body>
 </html>
+

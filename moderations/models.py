@@ -14,8 +14,11 @@ class FBGroup(models.Model):
     def hate_words_list(self):
         return self.hate_words.split(';')
 
+    def get_absolute_url(self):
+        return reverse("moderations:group", args=(self.pk,))
+
 class Moderator(models.Model):
-    models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
     fb_user_id = models.CharField(max_length=50)
     registered_at = models.DateTimeField(auto_now_add=True)
     groups = models.ManyToManyField(FBGroup, related_name="moderators")
