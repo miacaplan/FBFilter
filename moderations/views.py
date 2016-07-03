@@ -3,6 +3,7 @@ import datetime
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.paginator import Paginator
 from django.core.urlresolvers import reverse_lazy, reverse
 # from django.http import HttpResponse
 # from django.utils.encoding import escape_uri_path
@@ -98,6 +99,7 @@ class ListPostmentView(LoginRequiredMixin, ListView):
 
 class FBGroupDetailView(LoginRequiredMixin, DetailView):
     model = models.FBGroup
+    template_name = "moderations/postment_list.html"
 
     def get_queryset(self):
         return super().get_queryset().filter(moderators__exact=self.request.user.moderator)
@@ -105,10 +107,13 @@ class FBGroupDetailView(LoginRequiredMixin, DetailView):
     def page_title(self):
         return self.object.name
 
-        # def get_context_data(self, **kwargs):
-        #     d = super().get_context_data(**kwargs)
-        #     d['title123'] = self.object.title
-        #     return d
+    def get_context_data(self, **kwargs):
+        d = super().get_context_data(**kwargs)
+        paginator = Paginator(self.object.postments.all(), 1)
+        page_num = self.request.GET.get('page', 1)
+        d['page_obj'] = paginator.page(page_num)
+        d['object_list'] = d['page_obj'].object_list
+        return d
 
 
 # class CreateAccountView(LoggedInMixin, CreateView):
