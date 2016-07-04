@@ -11,7 +11,7 @@ from django.core.urlresolvers import reverse_lazy, reverse
 from django.shortcuts import redirect
 from django.views.generic import View
 from django.views.generic.detail import DetailView
-from django.views.generic.edit import CreateView, FormView
+from django.views.generic.edit import CreateView, FormView, UpdateView
 from django.views.generic.list import ListView
 
 
@@ -114,6 +114,43 @@ class FBGroupDetailView(LoginRequiredMixin, DetailView):
         d['page_obj'] = paginator.page(page_num)
         d['object_list'] = d['page_obj'].object_list
         return d
+
+class FBGroupMixin:
+    template_name = "moderations/fbgroup_form.html"
+
+    form_class = forms.FBGroupForm
+    success_url = reverse_lazy('moderations:home')
+
+    def get_initial(self):
+        return super().get_initial()
+
+    def form_valid(self, form):
+        return super().form_valid(form)
+
+
+class CreateFBGroupView(LoginRequiredMixin, FBGroupMixin, CreateView):
+
+    def title(self):
+        return "New Group Registration"
+
+    def form_valid(self, form):
+        form.instance.administrator = self.request.user.moderator
+        resp = super().form_valid(form)
+        form.instance.moderators.add(self.request.user.moderator)
+        messages.success(self.request, 'Succefully registered: ' + form.instance.name)
+        return resp
+
+
+class UpdateFBGroupView(LoginRequiredMixin, FBGroupMixin, UpdateView):
+    model = models.FBGroup
+
+    def title(self):
+        return self.object.name
+
+    def form_valid(self, form):
+        resp = super().form_valid(form)
+        messages.success(self.request, 'Succefully updated group: ' + form.instance.name)
+        return resp
 
 
 # class CreateAccountView(LoggedInMixin, CreateView):

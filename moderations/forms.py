@@ -1,6 +1,6 @@
 from django import forms
 
-# from . import models
+from . import models
 
 
 class LoginForm(forms.Form):
@@ -8,16 +8,13 @@ class LoginForm(forms.Form):
     password = forms.CharField(max_length=300, widget=forms.PasswordInput())
 
 
-# class AccountForm(forms.ModelForm):
-#     class Meta:
-#         model = models.Account
-#         exclude = (
-#             'user',
-#         )
+class FBGroupForm(forms.ModelForm):
 
+    class Meta:
+        model = models.FBGroup
 
-# class ExpenseForm(forms.ModelForm):
-#     class Meta:
-#         model = models.Expense
-#         exclude = (
-#         )
+        fields = (
+            'name',
+        )
+    # start = forms.DateTimeField(label='starts at', widget=DateTimeWidget(bootstrap_version=3, attrs={'data-readonly': 'false'}))
+    # end = forms.DateTimeField(label='ends at', widget=DateTimeWidget(bootstrap_version=3, attrs={'data-readonly': 'false'}))

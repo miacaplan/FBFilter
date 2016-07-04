@@ -4,9 +4,8 @@
 
 {% block content %}
 
-    <a href="{% url "moderations:list" %}">Expenses</a>
+    <a href="{% url "moderations:groups" %}">All Groups</a>
     &gt;
-    Add new expense...
 
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}

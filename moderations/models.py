@@ -6,10 +6,18 @@ from django.db import models
 
 
 
+
+class Moderator(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    fb_user_id = models.CharField(max_length=50)
+    fb_link = models.CharField(max_length=200)
+
 class FBGroup(models.Model):
     fb_group_id = models.CharField(max_length=50)
     name = models.CharField(max_length=200)
     hate_words = models.TextField()
+    administrator = models.ForeignKey(Moderator, related_name='admin_groups')
+    moderators = models.ManyToManyField(Moderator, related_name="groups")
 
     @property
     def hate_words_list(self):
@@ -17,12 +25,6 @@ class FBGroup(models.Model):
 
     def get_absolute_url(self):
         return reverse("moderations:group", args=(self.pk,))
-
-class Moderator(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    fb_user_id = models.CharField(max_length=50)
-    groups = models.ManyToManyField(FBGroup, related_name="moderators")
-    fb_link = models.CharField(max_length=200)
 
 def calc_hash(message):
     return hashlib.sha256(message.encode()).hexdigest()
