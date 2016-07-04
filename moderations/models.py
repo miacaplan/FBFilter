@@ -5,6 +5,7 @@ from django.core.urlresolvers import reverse
 from django.db import models
 
 
+
 class FBGroup(models.Model):
     fb_group_id = models.CharField(max_length=50)
     name = models.CharField(max_length=200)
@@ -20,8 +21,8 @@ class FBGroup(models.Model):
 class Moderator(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     fb_user_id = models.CharField(max_length=50)
-    registered_at = models.DateTimeField(auto_now_add=True)
     groups = models.ManyToManyField(FBGroup, related_name="moderators")
+    fb_link = models.CharField(max_length=200)
 
 def calc_hash(message):
     return hashlib.sha256(message.encode()).hexdigest()
@@ -95,4 +96,16 @@ class Action(models.Model):
                 performed_by = user,
                 postment = postment
         )
+
+
+def save_moderator(backend, user, response, *args, **kwargs):
+    # assert False, '{} {}'.format(user.id, kwargs)
+    # moderator = user.moderator
+    if kwargs.get('is_new', False):
+        moderator = Moderator(fb_user_id=response['id'],
+                              fb_link='link',
+                              user_id=user.id)
+        moderator.save()
+
+
 

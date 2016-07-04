@@ -19,6 +19,7 @@ import moderations.views
 
 urlpatterns = [
     url(r'', include('moderations.urls')),
+    url(r'', include('social.apps.django_app.urls', namespace='social')),
     url(r'^login/$', moderations.views.LoginView.as_view(), name='login'),
     url(r'^logout/$', moderations.views.LogoutView.as_view(), name='logout'),
     url(r'^admin/', admin.site.urls),

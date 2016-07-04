@@ -20,7 +20,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/1.9/howto/deployment/checklist/
 
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['my-fb-filter.dev']
 
 
 # Application definition
@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     # 3rd party
     'django_extensions',
     'bootstrap3',
+    'social.apps.django_app.default',
 
     'moderations',
 ]
@@ -101,8 +102,29 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+AUTHENTICATION_BACKENDS = (
+    'social.backends.facebook.FacebookOAuth2',
+    'django.contrib.auth.backends.ModelBackend',
+)
+
+SOCIAL_AUTH_ADMIN_USER_SEARCH_FIELDS = ['username', 'first_name', 'email']
+SOCIAL_AUTH_USER_MODEL = 'auth.User'
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
+SOCIAL_AUTH_ALWAYS_ASSOCIATE = True
+
+SOCIAL_AUTH_PIPELINE = (
+    'social.pipeline.social_auth.social_details',
+    'social.pipeline.social_auth.social_uid',
+    'social.pipeline.social_auth.auth_allowed',
+    'social.pipeline.social_auth.social_user',
+    'social.pipeline.user.get_username',
+    'social.pipeline.user.create_user',
+    'moderations.models.save_moderator',
+    'social.pipeline.social_auth.associate_user',
+    'social.pipeline.social_auth.load_extra_data',
+    'social.pipeline.user.user_details',
+)
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.9/topics/i18n/
@@ -122,3 +144,4 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
 
 STATIC_URL = '/static/'
+
