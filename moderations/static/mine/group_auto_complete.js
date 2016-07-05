@@ -25,11 +25,13 @@ $(function() {
             });
         },
         minLength: 0,
-        //select: function (event, ui) {
-        //    console.log('selected ' + ui.item.label);
-        //    $("#autocomplete-group").attr('value', ui.item.label);
-        //    console.log($("#autocomplete-group"));
-        //},
+        select: function (event, ui) {
+            //console.log('selected ' + ui.item.label);
+            event.preventDefault();
+            $("#id_name").val(ui.item.label);
+            $("#id_name").data("fbid", ui.item.value);
+            //console.log($("#autocomplete-group"));
+        },
         open: function () {
             $(this).removeClass("ui-corner-all").addClass("ui-corner-top");
         },
