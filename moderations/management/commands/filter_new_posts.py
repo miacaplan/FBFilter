@@ -74,33 +74,37 @@ class Command(BaseCommand):
                 fields='id,created_time,shares,status_type,reactions.summary(true),updated_time,message,from, permalink_url,comments.limit(100).fields(message,from, created_time, like_count, comments.limit(100).fields(message,from,created_time, like_count))',
                 limit=100,
                 since='26-06-2016T11:33:00')
-            for post in o['data']:
-                # since new comments change the updated_time of the post - should either filter out by created_time, or use checksum to test
-                # if a post has changed
-                # need to also check if any of the pending posts have been edited in the meantime
-                postment = None
-                if self._suspected(post['id'], post['message'], dateutil.parser.parse(post['created_time']), group):
-                    # add/update post
-                    postment = self._upsert_postment(0, [], [], group, post, models.Postment.Status.PENDING)
-                    models.Action.add_action(postment, models.Action.Type.FILTERED, None)
-                self._handle_comments(1, [postment], [post], group)
+            page = o
+            while True:
+                for post in o['data']:
+                    # since new comments change the updated_time of the post - should either filter out by created_time, or use checksum to test
+                    # if a post has changed
+                    # need to also check if any of the pending posts have been edited in the meantime
+                    postment = None
+                    if self._suspected(post['id'], post['message'], dateutil.parser.parse(post['created_time']), group):
+                        # add/update post
+                        postment = self._upsert_postment(0, [], [], group, post, models.Postment.Status.PENDING)
+                        models.Action.add_action(postment, models.Action.Type.FILTERED, None)
+                    self._handle_comments(1, [postment], [post], group)
 
-                # print(post.get('message'))
-                # # if post.get('comments'):
-                # #     for comment in post.get('comments')['data']:
-                # #         print(comment.get('from'))
-                # post['group'] = group
-                # post['reactions'] =
-                # # post['reactions'] = post.get('likes', {}).get('summary', {}).get('total_count', 0)
-                # post['shares'] = post.get('shares', {}).get('count', 0)
-                # post['created_time'] = dateutil.parser.parse(post['created_time'])
-                # post['updated_time'] = dateutil.parser.parse(post['updated_time'])
-
-
-                # res = models.upsert(models.posts_collection, o['data'])
-                # print('Inserted {} posts, updated {} posts.'.format(res['inserted'], res['updated']))
+                    # print(post.get('message'))
+                    # # if post.get('comments'):
+                    # #     for comment in post.get('comments')['data']:
+                    # #         print(comment.get('from'))
+                    # post['group'] = group
+                    # post['reactions'] =
+                    # # post['reactions'] = post.get('likes', {}).get('summary', {}).get('total_count', 0)
+                    # post['shares'] = post.get('shares', {}).get('count', 0)
+                    # post['created_time'] = dateutil.parser.parse(post['created_time'])
+                    # post['updated_time'] = dateutil.parser.parse(post['updated_time'])
 
 
+                    # res = models.upsert(models.posts_collection, o['data'])
+                    # print('Inserted {} posts, updated {} posts.'.format(res['inserted'], res['updated']))
+                try:
+                    page = requests.get(page['paging']['next']).json()
+                except KeyError:
+                    break
 
                 #### android SDK
 

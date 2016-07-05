@@ -38,34 +38,34 @@ from . import models
 #         assert False, request.session['visits']
 
 
-class LoginView(FormView):
-    form_class = forms.LoginForm
-    template_name = "login.html"
-
-    def dispatch(self, request, *args, **kwargs):
-        if request.user.is_authenticated():
-            return redirect('moderations:list')
-        return super().dispatch(request, *args, **kwargs)
-
-    def form_valid(self, form):
-        user = authenticate(username=form.cleaned_data['username'],
-                            password=form.cleaned_data['password'])
-
-        if user is not None and user.is_active:
-            login(self.request, user)
-            if self.request.GET.get('next'):
-                return redirect(
-                    self.request.GET['next'])  # SECURITY: check path
-            return redirect('moderations:groups')
-
-        form.add_error(None, "Invalid user name or password")
-        return self.form_invalid(form)
+# class LoginView(FormView):
+#     form_class = forms.LoginForm
+#     template_name = "login.html"
+#
+#     def dispatch(self, request, *args, **kwargs):
+#         if request.user.is_authenticated():
+#             return redirect('moderations:list')
+#         return super().dispatch(request, *args, **kwargs)
+#
+#     def form_valid(self, form):
+#         user = authenticate(username=form.cleaned_data['username'],
+#                             password=form.cleaned_data['password'])
+#
+#         if user is not None and user.is_active:
+#             login(self.request, user)
+#             if self.request.GET.get('next'):
+#                 return redirect(
+#                     self.request.GET['next'])  # SECURITY: check path
+#             return redirect('moderations:groups')
+#
+#         form.add_error(None, "Invalid user name or password")
+#         return self.form_invalid(form)
 
 
 class LogoutView(View):
     def get(self, request):
         logout(request)
-        return redirect("login")
+        return redirect(reverse("social:begin", kwargs={"backend":"facebook"}))
 
 #
 # class LoggedInMixin:

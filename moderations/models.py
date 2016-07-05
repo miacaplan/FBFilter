@@ -103,6 +103,7 @@ class Action(models.Model):
 def save_moderator(backend, user, response, *args, **kwargs):
     # assert False, '{} {}'.format(user.id, kwargs)
     # moderator = user.moderator
+
     if kwargs.get('is_new', False):
         moderator = Moderator(fb_user_id=response['id'],
                               fb_link='link',

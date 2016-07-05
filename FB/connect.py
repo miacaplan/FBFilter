@@ -3,7 +3,7 @@ import requests
 from . import secrets
 URL = "https://graph.facebook.com/oauth/access_token"
 
-def connect():
+def connect(version="2.5"):
 
     r = requests.get(URL, {
         'client_id': secrets.APP_ID,
@@ -14,7 +14,7 @@ def connect():
     r.raise_for_status()
     key, value = r.text.split("=")
 
-    # print(r.text)
+    print(r.text)
 
 
     # r = requests.get(URL, {
@@ -40,4 +40,4 @@ def connect():
 
     # print("Connected to FB graph API")
 
-    return facebook.GraphAPI(access_token=value, version='2.5')
+    return facebook.GraphAPI(access_token=value, version=version)

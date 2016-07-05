@@ -20,9 +20,6 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/1.9/howto/deployment/checklist/
 
 
-ALLOWED_HOSTS = ['my-fb-filter.dev']
-
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -109,9 +106,9 @@ AUTHENTICATION_BACKENDS = (
 
 SOCIAL_AUTH_ADMIN_USER_SEARCH_FIELDS = ['username', 'first_name', 'email']
 SOCIAL_AUTH_USER_MODEL = 'auth.User'
-LOGIN_URL = '/login/'
+SOCIAL_AUTH_FACEBOOK_SCOPE = ['email', 'user_managed_groups']
+LOGIN_URL = '/login/facebook/'
 LOGIN_REDIRECT_URL = '/'
-SOCIAL_AUTH_ALWAYS_ASSOCIATE = True
 
 SOCIAL_AUTH_PIPELINE = (
     'social.pipeline.social_auth.social_details',

@@ -1,15 +1,17 @@
-{% extends "base.html" %}
-{% load bootstrap3 %}
+    {% extends "base.html" %}
+{% load i18n staticfiles bootstrap3 %}
 
+{% block styles %}
+    <link href="{% static "vendor/jquery-ui/jquery-ui.min.css" %}" rel="stylesheet">
+{%  endblock %}
 
 {% block content %}
-
     <a href="{% url "moderations:groups" %}">All Groups</a>
     &gt;
-
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
         {% bootstrap_form form %}
+        <!--input id="autocomplete-group" class="ui-autocomplete-input"/-->
         {% buttons %}
             <button type="submit" class="btn btn-primary">
                 Save {% bootstrap_icon "save" %}
@@ -17,4 +19,10 @@
         {% endbuttons %}
     </form>
 
+{% endblock %}
+
+{% block scripts %}
+    <script src={% static "vendor/jquery.js" %}></script>
+    <script src={% static "vendor/jquery-ui/jquery-ui.min.js" %}></script>
+    <script src={% static "mine/group_auto_complete.js" %}></script>
 {% endblock %}
