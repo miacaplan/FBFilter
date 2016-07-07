@@ -29,7 +29,7 @@ $(function() {
             //console.log('selected ' + ui.item.label);
             event.preventDefault();
             $("#id_name").val(ui.item.label);
-            $("#id_name").data("fbid", ui.item.value);
+            $("#group_id").val(ui.item.value);
             //console.log($("#autocomplete-group"));
         },
         open: function () {

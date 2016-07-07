@@ -15,6 +15,5 @@ class FBGroupForm(forms.ModelForm):
 
         fields = (
             'name',
+            'hate_words',
         )
-    # start = forms.DateTimeField(label='starts at', widget=DateTimeWidget(bootstrap_version=3, attrs={'data-readonly': 'false'}))
-    # end = forms.DateTimeField(label='ends at', widget=DateTimeWidget(bootstrap_version=3, attrs={'data-readonly': 'false'}))

@@ -1,9 +1,10 @@
+import datetime
 import hashlib
 
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.db import models
-
+from django.utils import timezone
 
 
 
@@ -13,11 +14,12 @@ class Moderator(models.Model):
     fb_link = models.CharField(max_length=200)
 
 class FBGroup(models.Model):
-    fb_group_id = models.CharField(max_length=50)
+    fb_group_id = models.CharField(max_length=50, unique=True)
     name = models.CharField(max_length=200)
     hate_words = models.TextField()
     administrator = models.ForeignKey(Moderator, related_name='admin_groups')
-    moderators = models.ManyToManyField(Moderator, related_name="groups")
+    moderators = models.ManyToManyField(Moderator, related_name="groups", symmetrical=True)
+    last_filtered = models.DateTimeField(default=timezone.now())
 
     @property
     def hate_words_list(self):
@@ -38,7 +40,7 @@ class Postment(models.Model):
 
     type = models.IntegerField(choices=Type.types)
 
-    fb_id = models.CharField(max_length=50)
+    fb_id = models.CharField(max_length=50, unique=True)
     fb_user_id = models.CharField(max_length=50)
     message = models.TextField()
     img = models.ImageField(null=True, blank=True)
@@ -83,6 +85,7 @@ class Action(models.Model):
         APPROVED = 4
         REMOVED = 5
         BLOCKED = 6
+        EDIT_DETECTED = 7
 
         types = ((FILTERED, 'filtered'), (VIEWED, 'viewed'), (REQUESTED_EDIT, 'requested_edit'), (APPROVED, 'approved'),
                  (REMOVED, 'removed'), (BLOCKED, 'blocked'))

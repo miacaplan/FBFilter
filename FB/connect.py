@@ -41,3 +41,8 @@ def connect(version="2.5"):
     # print("Connected to FB graph API")
 
     return facebook.GraphAPI(access_token=value, version=version)
+
+
+def connect_with_token(token, version="2.5"):
+    print('connecting using ' + token)
+    return facebook.GraphAPI(access_token=token, version=version)
