@@ -1,6 +1,9 @@
 "use strict";
 var remove_line = function() {
     // remove the parent div and recalc sum
+    //selected_mods.delete .add("{{ moderator.user.username|lower }}");
+    selected_mods.delete($(this).parent().find("input").val().toLowerCase());
+    //console.log($(this).parent().text(), $(this).parent().val());
     $(this).parent().remove();
     return false;
 };
@@ -21,7 +24,8 @@ var add_line = function() {
     $new_input.autocomplete({
         source: function (request, response) {
             let res = $.map(all_mods, function (item) {
-                if (item.label.toLowerCase().indexOf(request.term.toLowerCase()) >= 0) {
+                if (item.label.toLowerCase().indexOf(request.term.toLowerCase()) >= 0 &&
+                    !selected_mods.has(item.label.toLowerCase())) {
                     return item;
                 }
             });
@@ -38,6 +42,7 @@ var add_line = function() {
             //console.log('selected ' + ui.item.label);
             event.preventDefault();
             $(this).val(ui.item.label);
+            selected_mods.add(ui.item.label.toLowerCase());
             //$("#group_id").val(ui.item.value);
             //console.log($("#autocomplete-group"));
         },
@@ -48,7 +53,6 @@ var add_line = function() {
             $(this).removeClass("ui-corner-top").addClass("ui-corner-all");
         }
     });
-
     return false;
 };
 

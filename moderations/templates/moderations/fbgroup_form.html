@@ -18,7 +18,7 @@
                 {% bootstrap_icon "plus-sign" %}</button>
             <ul class="list-group" id="g_moderators">
             {% for moderator in object.moderators.all %}
-                 <li class="list-group-item"><span>{{ moderator.user.username }}</span>
+                 <li class="list-group-item"><input type="text" value="{{ moderator.user.username }}" disabled></input>
                      <button class="pull-right btn remove">{% bootstrap_icon "minus-sign" %}</button>
                  </li>
             {% endfor %}
@@ -38,14 +38,18 @@
     <script src={% static "vendor/jquery-ui/jquery-ui.min.js" %}></script>
     <script src={% static "mine/group_auto_complete.js" %}></script>
     <script>
+        // todo: find a better way to share with the js
         let all_mods = [];
         {% for m in moderator_list %}
-            all_mods.push({label: "{{ m.user.username }}", value: "{{ m.fb_user_id }}"});
+            if ("{{ m.user.username|lower }}" != "{{ object.administrator.user.username|lower }}") {
+                all_mods.push({label: "{{ m.user.username }}", value: "{{ m.fb_user_id }}"});
+            }
         {% endfor %}
-        let selected_mods = Array();
+        let selected_mods = new Set([]);
         {% for moderator in object.moderators.all %}
-            selected_mods += ["{{ moderator.user.username }}"];
+            selected_mods.add("{{ moderator.user.username|lower }}");
         {% endfor %}
+        //let admin = "{{ object.administrator.user.username|lower }}";
 
     </script>
     <script src={% static "mine/moderators.js" %}></script>
