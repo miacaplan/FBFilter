@@ -34,7 +34,9 @@ INSTALLED_APPS = [
     'django_extensions',
     'bootstrap3',
     'social.apps.django_app.default',
+    'django_crontab',
 
+    # mine
     'moderations',
 ]
 
@@ -81,6 +83,9 @@ DATABASES = {
 }
 
 
+CRONJOBS = [
+    ('*/5 * * * *', 'django.core.management.call_command', ['filter_new_posts']),
+]
 # Password validation
 # https://docs.djangoproject.com/en/1.9/ref/settings/#auth-password-validators
 

@@ -1,9 +1,11 @@
 {% extends "base.html" %}
-{% load bootstrap3 %}
+{% load bootstrap3 breadcrumbs %}
+
+{% block breadcrumbs %}
+    {% breadcrumb_url 'Home' "moderations:groups" %}
+{% endblock %}
 
 {% block content %}
-
-    <a href="{% url "moderations:groups" %}">Back to all groups</a>
 
     <ul class="list-group">
         {% for p in object.postments.all %}

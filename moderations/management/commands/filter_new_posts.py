@@ -5,6 +5,8 @@ from moderations import models
 from FB import connect
 from django.utils import timezone
 import requests
+# from multiprocessing import Process
+from threading import Thread
 
 # last_checked = timezone.now() - datetime.timedelta(days = 10)
 
@@ -64,61 +66,67 @@ class Command(BaseCommand):
             try:
                 page = requests.get(page['paging']['next']).json()
             except KeyError:
+
                 break
 
+    def _update_group(self, group):
+        try:
+            # o = graph.get_object(group.fb_group_id + '/feed.since(13-06-2016)'), # {})'.format(last_checked),
+            start_time = timezone.now()
+            graph = connect.connect_with_token(
+                    group.administrator.user.social_auth.get(provider='facebook').extra_data['access_token'])
+            o = graph.get_object(group.fb_group_id + '/feed',  # {})'.format(last_checked),
+                                 fields='id,created_time,shares,status_type,reactions.summary(true),updated_time,message,from, permalink_url,comments.limit(100).fields(message,from, created_time, like_count, comments.limit(100).fields(message,from,created_time, like_count))',
+                                 limit=25,
+                                 since=group.last_filtered)  # .strftime('%m/%d/%yT%H:%M:%S'))
+            page = o
+            while True:
+                for post in page['data']:
+                    # since new comments change the updated_time of the post - should either filter out by created_time, or use checksum to test
+                    # if a post has changed
+                    # need to also check if any of the pending posts have been edited in the meantime
+                    postment = None
+                    if self._suspected(post['id'], post.get('message', ''), dateutil.parser.parse(post['created_time']),
+                                       group):
+                        # add/update post
+                        postment = self._upsert_postment(0, [], [], group, post, models.Postment.Status.PENDING)
+                        models.Action.add_action(postment, models.Action.Type.FILTERED, None)
+                    self._handle_comments(1, [postment], [post], group)
+
+                    # print(post.get('message'))
+                    # # if post.get('comments'):
+                    # #     for comment in post.get('comments')['data']:
+                    # #         print(comment.get('from'))
+                    # post['group'] = group
+                    # post['reactions'] =
+                    # # post['reactions'] = post.get('likes', {}).get('summary', {}).get('total_count', 0)
+                    # post['shares'] = post.get('shares', {}).get('count', 0)
+                    # post['created_time'] = dateutil.parser.parse(post['created_time'])
+                    # post['updated_time'] = dateutil.parser.parse(post['updated_time'])
+
+
+                    # res = models.upsert(models.posts_collection, o['data'])
+                    # print('Inserted {} posts, updated {} posts.'.format(res['inserted'], res['updated']))
+                try:
+                    page = requests.get(page['paging']['next']).json()
+                except KeyError:
+                    break
+                    # update the group
+        except:
+            pass  # todo
+        else:
+            group.last_filtered = start_time
+            group.save()
+
     def handle(self, *args, **options):
-
-        # graph = connect.connect();
-        # todo: parallel processing
-        for group in models.FBGroup.objects.all():
-            try:
-                # o = graph.get_object(group.fb_group_id + '/feed.since(13-06-2016)'), # {})'.format(last_checked),
-                start_time = timezone.now()
-                graph = connect.connect_with_token(group.administrator.user.social_auth.get(provider='facebook').extra_data['access_token'])
-                o = graph.get_object(group.fb_group_id + '/feed', # {})'.format(last_checked),
-                    fields='id,created_time,shares,status_type,reactions.summary(true),updated_time,message,from, permalink_url,comments.limit(100).fields(message,from, created_time, like_count, comments.limit(100).fields(message,from,created_time, like_count))',
-                    limit=25,
-                    since=group.last_filtered) #.strftime('%m/%d/%yT%H:%M:%S'))
-                page = o
-                while True:
-                    for post in page['data']:
-                        # since new comments change the updated_time of the post - should either filter out by created_time, or use checksum to test
-                        # if a post has changed
-                        # need to also check if any of the pending posts have been edited in the meantime
-                        postment = None
-                        if self._suspected(post['id'], post.get('message', ''), dateutil.parser.parse(post['created_time']), group):
-                            # add/update post
-                            postment = self._upsert_postment(0, [], [], group, post, models.Postment.Status.PENDING)
-                            models.Action.add_action(postment, models.Action.Type.FILTERED, None)
-                        self._handle_comments(1, [postment], [post], group)
-
-                        # print(post.get('message'))
-                        # # if post.get('comments'):
-                        # #     for comment in post.get('comments')['data']:
-                        # #         print(comment.get('from'))
-                        # post['group'] = group
-                        # post['reactions'] =
-                        # # post['reactions'] = post.get('likes', {}).get('summary', {}).get('total_count', 0)
-                        # post['shares'] = post.get('shares', {}).get('count', 0)
-                        # post['created_time'] = dateutil.parser.parse(post['created_time'])
-                        # post['updated_time'] = dateutil.parser.parse(post['updated_time'])
-
-
-                        # res = models.upsert(models.posts_collection, o['data'])
-                        # print('Inserted {} posts, updated {} posts.'.format(res['inserted'], res['updated']))
-                    try:
-                        page = requests.get(page['paging']['next']).json()
-                    except KeyError:
-                        break
-                # update the group
-            except:
-                pass #todo
-            else:
-                group.last_filtered = start_time
-                group.save()
-
+        # pool = Pool(5)
+        # pool.map(self._update_group, models.FBGroup.objects.all())
+        procs = [Thread(target=self._update_group, args=(group,)) for group in models.FBGroup.objects.all()]
+        for p in procs:
+            p.start()
+        for p in procs:
+            p.join()
 #### android SDK
-
 # get post
 # GraphRequest request = GraphRequest.newGraphPathRequest(
 #   accessToken,

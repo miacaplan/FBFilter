@@ -1,4 +1,5 @@
 import datetime
+import json
 
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
@@ -8,6 +9,7 @@ from django.core.urlresolvers import reverse_lazy, reverse
 # from django.http import HttpResponse
 # from django.utils.encoding import escape_uri_path
 # from django.utils.translation import ugettext_lazy as _
+from django.db.models import Q
 from django.db.utils import IntegrityError
 from django.shortcuts import redirect
 from django.views.generic import View
@@ -15,10 +17,10 @@ from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, FormView, UpdateView
 from django.views.generic.list import ListView
 
-
 from . import forms
 from . import models
 from FB import fb_utils
+
 
 # class DummyView(View):
 #     def get(self, request):
@@ -66,7 +68,8 @@ from FB import fb_utils
 class LogoutView(View):
     def get(self, request):
         logout(request)
-        return redirect(reverse("social:begin", kwargs={"backend":"facebook"}))
+        return redirect(reverse("social:begin", kwargs={"backend": "facebook"}))
+
 
 #
 # class LoggedInMixin:
@@ -83,11 +86,12 @@ class ListFBGroupView(LoginRequiredMixin, ListView):
     page_title = "Home"
 
     def get_queryset(self):
-        return super().get_queryset().filter(moderators__exact=self.request.user.moderator)
+        return super().get_queryset().filter(
+            Q(moderators__exact=self.request.user.moderator.id) | Q(administrator=self.request.user.moderator.id)
+        )
 
     def total(self):
-        return 87 #self.get_queryset().aggregate(sum=Sum('amount'))['sum']
-
+        return 87  # self.get_queryset().aggregate(sum=Sum('amount'))['sum']
 
 class ListPostmentView(LoginRequiredMixin, ListView):
     model = models.Postment
@@ -95,15 +99,18 @@ class ListPostmentView(LoginRequiredMixin, ListView):
     page_title = "Posts & Comments to Moderate"
 
     def get_queryset(self):
-        return super().get_queryset().filter(group__moderators__exact=self.request.user.moderator)
-
+        return super().get_queryset().filter(
+            Q(group__moderators__exact=self.request.user.moderator.id) | Q(group__administrator=self.request.user.moderator.id)
+        )
 
 class FBGroupDetailView(LoginRequiredMixin, DetailView):
     model = models.FBGroup
     template_name = "moderations/postment_list.html"
 
     def get_queryset(self):
-        return super().get_queryset().filter(moderators__exact=self.request.user.moderator)
+        return super().get_queryset().filter(
+            Q(moderators__exact=self.request.user.moderator.id) | Q(administrator=self.request.user.moderator.id)
+        )
 
     def page_title(self):
         return self.object.name
@@ -125,9 +132,14 @@ class FBGroupMixin:
     def get_initial(self):
         return super().get_initial()
 
+    def get_context_data(self, **kwargs):
+        d = super().get_context_data(**kwargs)
+        d[
+            'moderator_list'] = models.Moderator.objects.all()  # [{'label': m.user.username, 'value': m.user.social_auth.get(provider='facebook').uid} for m in models.Moderator.objects.all()]
+        return d
+
     def form_valid(self, form):
         return super().form_valid(form)
-
 
 class CreateFBGroupView(LoginRequiredMixin, FBGroupMixin, CreateView):
 
@@ -136,26 +148,31 @@ class CreateFBGroupView(LoginRequiredMixin, FBGroupMixin, CreateView):
 
     def form_valid(self, form):
         fb_user = self.request.user.social_auth.get(provider='facebook')
-        if not fb_utils.is_group_admin(self.request.POST['group_id'], fb_user.uid, fb_user.extra_data['access_token']):
+        if not fb_utils.is_group_admin(self.request.POST['group_id'], fb_user.uid,
+                                       fb_user.extra_data['access_token']):
             form.add_error(None, "Only groups administered by you may be registered")
             return self.form_invalid(form)
         try:
             form.instance.administrator = self.request.user.moderator
             form.instance.fb_group_id = self.request.POST['group_id']
             resp = super().form_valid(form)
-            form.instance.moderators.add(self.request.user.moderator)
+            # form.instance.moderators.add(self.request.user.moderator)
             messages.success(self.request, 'Succefully registered: ' + form.instance.name)
             return resp
         except IntegrityError:
             form.add_error(None, "Group {} already exists".format(form.instance.name))
             return self.form_invalid(form)
         except Exception as e:
-            form.add_error(None, "Error occured when attempting to register group {}:\n{}".format(form.instance.name, e.args))
+            form.add_error(None,
+                           "Error occured when attempting to register group {}:\n{}".format(form.instance.name,
+                                                                                            e.args))
             return self.form_invalid(form)
-
 
 class UpdateFBGroupView(LoginRequiredMixin, FBGroupMixin, UpdateView):
     model = models.FBGroup
+
+    def get_queryset(self):
+        return super().get_queryset().filter(administrator=self.request.user.moderator.id)
 
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
@@ -170,48 +187,3 @@ class UpdateFBGroupView(LoginRequiredMixin, FBGroupMixin, UpdateView):
         messages.success(self.request, 'Succefully updated group: ' + form.instance.name)
         return resp
 
-
-# class CreateAccountView(LoggedInMixin, CreateView):
-#     page_title = _("Add New Account")
-#     model = models.Expense
-#     form_class = forms.AccountForm
-#
-#     success_url = reverse_lazy('moderations:list')
-#
-#     def form_valid(self, form):
-#         form.instance.user = self.request.user
-#         resp = super().form_valid(form)
-#         messages.success(self.request, "Account created successfully.")
-#         return resp
-#
-#
-# class CreateExpenseView(LoggedInMixin, CreateView):
-#     page_title = "Add New Expense"
-#     model = models.Expense
-#     fields = (
-#         'account',
-#         'date',
-#         'amount',
-#         'title',
-#         'description',
-#         'photo',
-#     )
-#
-#     # success_url = reverse_lazy('moderations:list')
-#
-#     def get_form(self, form_class=None):
-#         form = super().get_form(form_class)
-#         # form.fields['account'].queryset = models.Account.objects.filter(
-#         #     user=self.request.user)
-#         form.fields['account'].queryset = form.fields[
-#             'account'].queryset.filter(user=self.request.user)
-#         return form
-#
-#     def get_initial(self):
-#         d = super().get_initial()
-#         d['date'] = datetime.date.today()
-#         return d
-#
-#     def form_valid(self, form):
-#         form.instance.user = self.request.user
-#         return super().form_valid(form)

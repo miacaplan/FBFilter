@@ -12,6 +12,18 @@
         {% csrf_token %}
         {% bootstrap_form form %}
         <input id="group_id" name="group_id" type="hidden"/>
+        <div class="form-group">
+            <lable class="control-label" for="moderators">Moderators</lable>
+            <button class="pull-right btn add">
+                {% bootstrap_icon "plus-sign" %}</button>
+            <ul class="list-group" id="g_moderators">
+            {% for moderator in object.moderators.all %}
+                 <li class="list-group-item"><span>{{ moderator.user.username }}</span>
+                     <button class="pull-right btn remove">{% bootstrap_icon "minus-sign" %}</button>
+                 </li>
+            {% endfor %}
+            </ul>
+        </div>
         {% buttons %}
             <button type="submit" class="btn btn-primary">
                 Save {% bootstrap_icon "save" %}
@@ -25,4 +37,16 @@
     <script src={% static "vendor/jquery.js" %}></script>
     <script src={% static "vendor/jquery-ui/jquery-ui.min.js" %}></script>
     <script src={% static "mine/group_auto_complete.js" %}></script>
+    <script>
+        let all_mods = [];
+        {% for m in moderator_list %}
+            all_mods.push({label: "{{ m.user.username }}", value: "{{ m.fb_user_id }}"});
+        {% endfor %}
+        let selected_mods = Array();
+        {% for moderator in object.moderators.all %}
+            selected_mods += ["{{ moderator.user.username }}"];
+        {% endfor %}
+
+    </script>
+    <script src={% static "mine/moderators.js" %}></script>
 {% endblock %}
